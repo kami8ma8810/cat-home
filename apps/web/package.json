@@ -17,6 +17,7 @@
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/lucide": "^1.2.82",
     "@nuxt/ui": "^4.3.0",
+    "@nuxtjs/sitemap": "^7.5.0",
     "@nuxtjs/supabase": "^2.0.3",
     "@pinia/nuxt": "^0.11.3",
     "nuxt": "^4.0.0",

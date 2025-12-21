@@ -18,7 +18,13 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxtjs/supabase',
     '@pinia/nuxt',
+    '@nuxtjs/sitemap',
   ],
+
+  // サイトマップ設定
+  site: {
+    url: 'https://cat-home.pages.dev',
+  },
 
   css: ['~/assets/css/main.css'],
 

@@ -35,8 +35,9 @@ const handlePageChange = async (page: number) => {
     </div>
 
     <!-- ローディング -->
-    <div v-if="store.loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
+    <div v-if="store.loading" class="flex justify-center py-12" role="status" aria-label="読み込み中">
+      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
+      <span class="sr-only">物件一覧を読み込み中</span>
     </div>
 
     <!-- エラー -->
@@ -69,7 +70,7 @@ const handlePageChange = async (page: number) => {
 
       <!-- 物件がない場合 -->
       <div v-else class="text-center py-12 text-gray-500">
-        <UIcon name="i-heroicons-home" class="w-12 h-12 mx-auto mb-4" />
+        <UIcon name="i-heroicons-home" class="w-12 h-12 mx-auto mb-4" aria-hidden="true" />
         <p>物件が見つかりませんでした</p>
       </div>
 
