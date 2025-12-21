@@ -5,9 +5,9 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div>
     <!-- ヒーローセクション -->
-    <section class="flex-1 flex items-center justify-center bg-gradient-to-b from-primary-50 to-white">
+    <section class="flex items-center justify-center bg-gradient-to-b from-primary-50 to-white min-h-[60vh]">
       <div class="container mx-auto px-4 py-16 text-center">
         <h1 class="text-4xl md:text-6xl font-bold mb-6 flex items-center justify-center gap-3">
           <UIcon name="i-lucide-cat" class="size-12 md:size-16" />
@@ -38,8 +38,8 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-              <UIcon name="i-heroicons-home" class="size-10 text-primary" />
-            </div>
+                <UIcon name="i-heroicons-home" class="size-10 text-primary" />
+              </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">豊富な物件データ</h3>
             <p class="text-gray-600 text-center">
@@ -49,8 +49,8 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-              <UIcon name="i-heroicons-magnifying-glass" class="size-10 text-primary" />
-            </div>
+                <UIcon name="i-heroicons-magnifying-glass" class="size-10 text-primary" />
+              </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">かんたん検索</h3>
             <p class="text-gray-600 text-center">
@@ -60,8 +60,8 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-              <UIcon name="i-heroicons-calendar-days" class="size-10 text-primary" />
-            </div>
+                <UIcon name="i-heroicons-calendar-days" class="size-10 text-primary" />
+              </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">毎日更新</h3>
             <p class="text-gray-600 text-center">
@@ -71,12 +71,5 @@ useHead({
         </div>
       </div>
     </section>
-
-    <!-- フッター -->
-    <footer class="py-8 bg-gray-100">
-      <div class="container mx-auto px-4 text-center text-gray-500">
-        <p>&copy; 2024 cat-home. All rights reserved.</p>
-      </div>
-    </footer>
   </div>
 </template>

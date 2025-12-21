@@ -1,0 +1,7 @@
+name = "cat-home"
+compatibility_date = "2024-12-21"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[vars]
+# 環境変数はCloudflareダッシュボードで設定
