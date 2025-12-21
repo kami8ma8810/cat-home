@@ -29,6 +29,11 @@ const handlePageChange = async (page: number) => {
       </p>
     </div>
 
+    <!-- 検索フォーム -->
+    <div class="mb-8">
+      <PropertySearchForm />
+    </div>
+
     <!-- ローディング -->
     <div v-if="store.loading" class="flex justify-center py-12">
       <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
