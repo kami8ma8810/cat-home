@@ -12,6 +12,7 @@
   },
   "scripts": {
     "scrape:suumo": "tsx src/scripts/run-suumo.ts",
+    "scrape:door": "tsx src/scripts/run-door.ts",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit"

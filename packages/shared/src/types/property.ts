@@ -55,7 +55,7 @@ export interface Property {
 }
 
 /** データソース */
-export type PropertySource = 'suumo' | 'homes' | 'athome' | 'other'
+export type PropertySource = 'suumo' | 'homes' | 'athome' | 'door' | 'other'
 
 /** 建物種別 */
 export type BuildingType = 'mansion' | 'apartment' | 'house' | 'terraced' | 'other'
