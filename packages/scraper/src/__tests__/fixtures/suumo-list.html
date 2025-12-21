@@ -1,91 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <title>ペット可（猫）の賃貸物件一覧 - SUUMO</title>
 </head>
 <body>
   <div id="js-bukkenList">
-    <!-- 物件1 -->
-    <div class="cassetteitem">
-      <div class="cassetteitem_content">
-        <div class="cassetteitem_content-title">
-          <a href="/chintai/jnc_000000001/">メゾン猫の家</a>
-        </div>
-        <div class="cassetteitem_detail-col1">
-          <div class="cassetteitem_detail-text">東京都渋谷区神宮前1-1-1</div>
-        </div>
-        <div class="cassetteitem_detail-col2">
-          <div class="cassetteitem_detail-text">
-            <span>JR山手線/渋谷駅 歩5分</span>
+    <ul class="l-cassetteitem">
+      <!-- 建物1: 2部屋ある建物 -->
+      <li>
+        <div class="cassetteitem">
+          <div class="cassetteitem-detail">
+            <div class="cassetteitem-detail-body">
+              <div class="cassetteitem_content">
+                <div class="cassetteitem_content-label"><span class="ui-pct ui-pct--util1">賃貸マンション</span></div>
+                <div class="cassetteitem_content-title">メゾン猫の家</div>
+                <div class="cassetteitem_content-body">
+                  <ul class="cassetteitem_detail">
+                    <li class="cassetteitem_detail-col1">東京都渋谷区神宮前1-1-1</li>
+                    <li class="cassetteitem_detail-col2">
+                      <div class="cassetteitem_detail-text">JR山手線/渋谷駅 歩5分</div>
+                    </li>
+                    <li class="cassetteitem_detail-col3">
+                      <div>築5年</div>
+                      <div>10階建</div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cassetteitem-item">
+            <table class="cassetteitem_other">
+              <thead>
+                <tr>
+                  <th class="cassetteitem_other-col01">&nbsp;</th>
+                  <th class="cassetteitem_other-col02">&nbsp;</th>
+                  <th class="cassetteitem_other-col03">階</th>
+                  <th class="cassetteitem_other-col04">賃料/管理費</th>
+                  <th class="cassetteitem_other-col05">敷金/礼金</th>
+                  <th class="cassetteitem_other-col06">間取り/専有面積</th>
+                </tr>
+              </thead>
+              <!-- 部屋1 -->
+              <tbody>
+                <tr class="js-cassette_link">
+                  <td class="cassetteitem_other-checkbox">
+                    <input type="checkbox" name="bc" value="100000000001">
+                  </td>
+                  <td></td>
+                  <td>2階</td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--rent"><span class="cassetteitem_other-emphasis ui-text--bold">8.5万円</span></span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--administration">5000円</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--deposit">8.5万円</span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--gratuity">8.5万円</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_madori">1K</span></li>
+                      <li><span class="cassetteitem_menseki">25.5m<sup>2</sup></span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <a href="/chintai/jnc_000000001/?bc=100000000001" class="js-cassette_link_href cassetteitem_other-linktext">詳細を見る</a>
+                  </td>
+                </tr>
+              </tbody>
+              <!-- 部屋2（同じ建物の別の部屋） -->
+              <tbody>
+                <tr class="js-cassette_link">
+                  <td class="cassetteitem_other-checkbox">
+                    <input type="checkbox" name="bc" value="100000000002">
+                  </td>
+                  <td></td>
+                  <td>5階</td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--rent"><span class="cassetteitem_other-emphasis ui-text--bold">9.2万円</span></span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--administration">5000円</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--deposit">9.2万円</span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--gratuity">9.2万円</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_madori">1K</span></li>
+                      <li><span class="cassetteitem_menseki">27.0m<sup>2</sup></span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <a href="/chintai/jnc_000000001_02/?bc=100000000002" class="js-cassette_link_href cassetteitem_other-linktext">詳細を見る</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <table class="cassetteitem_other">
-          <tbody>
-            <tr>
-              <td class="cassetteitem_price cassetteitem_price--rent">
-                <span class="cassetteitem_other-emphasis ui-text--bold">8.5</span>万円
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--administration">
-                <span>5000</span>円
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--deposit">
-                <span>8.5万円</span>
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--gratuity">
-                <span>8.5万円</span>
-              </td>
-              <td class="cassetteitem_madori">
-                <span>1K</span>
-              </td>
-              <td class="cassetteitem_menseki">
-                <span>25.5</span>m<sup>2</sup>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      </li>
 
-    <!-- 物件2 -->
-    <div class="cassetteitem">
-      <div class="cassetteitem_content">
-        <div class="cassetteitem_content-title">
-          <a href="/chintai/jnc_000000002/">キャットハウス目黒</a>
-        </div>
-        <div class="cassetteitem_detail-col1">
-          <div class="cassetteitem_detail-text">東京都目黒区中目黒2-2-2</div>
-        </div>
-        <div class="cassetteitem_detail-col2">
-          <div class="cassetteitem_detail-text">
-            <span>東急東横線/中目黒駅 歩8分</span>
+      <!-- 建物2: 1部屋だけの建物 -->
+      <li>
+        <div class="cassetteitem">
+          <div class="cassetteitem-detail">
+            <div class="cassetteitem-detail-body">
+              <div class="cassetteitem_content">
+                <div class="cassetteitem_content-label"><span class="ui-pct ui-pct--util1">賃貸マンション</span></div>
+                <div class="cassetteitem_content-title">キャットハウス目黒</div>
+                <div class="cassetteitem_content-body">
+                  <ul class="cassetteitem_detail">
+                    <li class="cassetteitem_detail-col1">東京都目黒区中目黒2-2-2</li>
+                    <li class="cassetteitem_detail-col2">
+                      <div class="cassetteitem_detail-text">東急東横線/中目黒駅 歩8分</div>
+                    </li>
+                    <li class="cassetteitem_detail-col3">
+                      <div>築3年</div>
+                      <div>8階建</div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cassetteitem-item">
+            <table class="cassetteitem_other">
+              <thead>
+                <tr>
+                  <th class="cassetteitem_other-col01">&nbsp;</th>
+                  <th class="cassetteitem_other-col02">&nbsp;</th>
+                  <th class="cassetteitem_other-col03">階</th>
+                  <th class="cassetteitem_other-col04">賃料/管理費</th>
+                  <th class="cassetteitem_other-col05">敷金/礼金</th>
+                  <th class="cassetteitem_other-col06">間取り/専有面積</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="js-cassette_link">
+                  <td class="cassetteitem_other-checkbox">
+                    <input type="checkbox" name="bc" value="100000000003">
+                  </td>
+                  <td></td>
+                  <td>3階</td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--rent"><span class="cassetteitem_other-emphasis ui-text--bold">12万円</span></span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--administration">8000円</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_price cassetteitem_price--deposit">1ヶ月</span></li>
+                      <li><span class="cassetteitem_price cassetteitem_price--gratuity">1ヶ月</span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ul>
+                      <li><span class="cassetteitem_madori">1LDK</span></li>
+                      <li><span class="cassetteitem_menseki">40.2m<sup>2</sup></span></li>
+                    </ul>
+                  </td>
+                  <td>
+                    <a href="/chintai/jnc_000000002/?bc=100000000003" class="js-cassette_link_href cassetteitem_other-linktext">詳細を見る</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <table class="cassetteitem_other">
-          <tbody>
-            <tr>
-              <td class="cassetteitem_price cassetteitem_price--rent">
-                <span class="cassetteitem_other-emphasis ui-text--bold">12</span>万円
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--administration">
-                <span>8000</span>円
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--deposit">
-                <span>1ヶ月</span>
-              </td>
-              <td class="cassetteitem_price cassetteitem_price--gratuity">
-                <span>1ヶ月</span>
-              </td>
-              <td class="cassetteitem_madori">
-                <span>1LDK</span>
-              </td>
-              <td class="cassetteitem_menseki">
-                <span>40.2</span>m<sup>2</sup>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
 </body>
 </html>

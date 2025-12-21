@@ -79,62 +79,79 @@ export class SuumoScraper extends BaseScraper {
 
   /**
    * 物件一覧HTMLをパースして物件情報を抽出する
+   * 1つの建物（cassetteitem）に複数の部屋が含まれる構造に対応
    */
   parseListHtml(html: string): ScrapedProperty[] {
     const $ = cheerio.load(html)
     const properties: ScrapedProperty[] = []
 
+    // デバッグ: 物件カードの数を確認
+    const cassetteCount = $('.cassetteitem').length
+    console.log(`📦 物件カード数: ${cassetteCount}`)
+
+    // 物件カードが0件の場合、HTMLの先頭を出力してデバッグ
+    if (cassetteCount === 0) {
+      console.warn('⚠️ 物件カードが見つかりません。HTML先頭500文字:')
+      console.warn(html.slice(0, 500))
+    }
+
     $('.cassetteitem').each((_, element) => {
       const $item = $(element)
 
-      // 物件名と詳細ページURL
-      const $titleLink = $item.find('.cassetteitem_content-title a')
-      const name = $titleLink.text().trim()
-      const href = $titleLink.attr('href') || ''
-      const sourceUrl = href.startsWith('http') ? href : `${SUUMO_BASE_URL}${href}`
+      // 建物情報（共通）
+      const name = $item.find('.cassetteitem_content-title').text().trim()
+      const address = $item.find('.cassetteitem_detail-col1').text().trim()
 
-      // external_id を URL から抽出（例: /chintai/jnc_000000001/ → jnc_000000001）
-      const externalIdMatch = href.match(/\/chintai\/([^/]+)\//)
-      const externalId = externalIdMatch ? externalIdMatch[1] : ''
+      // 各部屋をループ（1建物 = 複数部屋）
+      $item.find('tbody tr.js-cassette_link').each((_, roomRow) => {
+        const $room = $(roomRow)
 
-      // 住所
-      const address = $item
-        .find('.cassetteitem_detail-col1 .cassetteitem_detail-text')
-        .first()
-        .text()
-        .trim()
+        // 詳細ページURL
+        const href = $room.find('.js-cassette_link_href').attr('href') || ''
+        const sourceUrl = href.startsWith('http') ? href : `${SUUMO_BASE_URL}${href}`
 
-      // 賃料（万円単位のテキストを円に変換）
-      const rentText = $item
-        .find('.cassetteitem_price--rent .cassetteitem_other-emphasis')
-        .text()
-        .trim()
-      const rent = this.parseRent(rentText)
+        // external_id を URL から抽出（例: /chintai/jnc_000103254717/?bc=... → jnc_000103254717）
+        const externalIdMatch = href.match(/\/chintai\/(jnc_[^/]+)\//)
+        const externalId = externalIdMatch ? externalIdMatch[1] : ''
 
-      // 管理費
-      const managementFeeText = $item
-        .find('.cassetteitem_price--administration span')
-        .text()
-        .trim()
-      const managementFee = this.parseManagementFee(managementFeeText)
+        // externalId が取れない場合はスキップ（ボット検出等で HTML が正常でない可能性）
+        if (!externalId) {
+          console.warn(`⚠️ externalId が取得できませんでした: href="${href}"`)
+          return // continue to next room
+        }
 
-      // 間取り
-      const floorPlan = $item.find('.cassetteitem_madori span').text().trim()
+        // 賃料（万円単位のテキストを円に変換）
+        const rentText = $room
+          .find('.cassetteitem_price--rent .cassetteitem_other-emphasis')
+          .text()
+          .trim()
+        const rent = this.parseRent(rentText)
 
-      // 専有面積
-      const areaText = $item.find('.cassetteitem_menseki span').text().trim()
-      const area = parseFloat(areaText) || 0
+        // 管理費
+        const managementFeeText = $room
+          .find('.cassetteitem_price--administration')
+          .text()
+          .trim()
+        const managementFee = this.parseManagementFee(managementFeeText)
 
-      properties.push({
-        name,
-        address,
-        rent,
-        managementFee,
-        floorPlan,
-        area,
-        sourceUrl,
-        externalId,
-        source: 'suumo',
+        // 間取り
+        const floorPlan = $room.find('.cassetteitem_madori').text().trim()
+
+        // 専有面積
+        const areaText = $room.find('.cassetteitem_menseki').text().trim()
+        const area = parseFloat(areaText) || 0
+
+        properties.push({
+          name,
+          address,
+          rent,
+          managementFee,
+          floorPlan,
+          area,
+          sourceUrl,
+          externalId,
+          source: 'suumo',
+        })
       })
     })
 
@@ -143,13 +160,18 @@ export class SuumoScraper extends BaseScraper {
 
   /**
    * 賃料テキストを円に変換
-   * 例: "8.5" → 85000, "12" → 120000, "-" → 0
+   * 例: "8.5万円" → 85000, "27.8万円" → 278000, "-" → 0
    */
   parseRent(text: string): number {
     if (text === '-' || !text) {
       return 0
     }
-    const value = parseFloat(text)
+    // 「27.8万円」などから数値部分を抽出
+    const match = text.match(/([0-9.]+)/)
+    if (!match) {
+      return 0
+    }
+    const value = parseFloat(match[1])
     if (isNaN(value)) {
       return 0
     }

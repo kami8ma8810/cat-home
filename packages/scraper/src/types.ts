@@ -19,7 +19,9 @@ export interface ScraperConfig {
 /** デフォルトのスクレイピング設定 */
 export const DEFAULT_SCRAPER_CONFIG: ScraperConfig = {
   requestDelay: 3000,
-  userAgent: 'CatHomeBot/1.0 (+https://cat-home.example.com/bot)',
+  // 一般的なブラウザの User-Agent を使用（ボット検出を回避）
+  userAgent:
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   respectRobotsTxt: true,
   maxConcurrent: 1,
   maxRetries: 3,

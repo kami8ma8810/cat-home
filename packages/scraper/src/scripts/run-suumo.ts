@@ -6,10 +6,15 @@
  *   - SUPABASE_SERVICE_KEY: Supabase サービスロールキー（service_role）
  *
  * 使用方法:
- *   npx tsx src/scripts/run-suumo.ts
+ *   pnpm --filter @cat-home/scraper scrape:suumo           # 通常実行（DB保存あり）
+ *   pnpm --filter @cat-home/scraper scrape:suumo --dry-run # ドライラン（DB保存なし）
  */
 import { DatabaseService } from '../services/database'
 import { SuumoScraper } from '../sources/suumo'
+
+// コマンドライン引数の解析
+const args = process.argv.slice(2)
+const isDryRun = args.includes('--dry-run')
 
 // 猫飼育可物件の検索URL（東京都）
 const SUUMO_SEARCH_URLS = [
@@ -21,19 +26,28 @@ const SUUMO_SEARCH_URLS = [
 async function main() {
   console.log('🐱 cat-home SUUMO scraper starting...')
 
-  // 環境変数チェック
+  if (isDryRun) {
+    console.log('📋 Dry run mode: DB への保存はスキップします')
+  }
+
+  // 環境変数チェック（ドライランの場合は不要）
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!isDryRun && (!supabaseUrl || !supabaseKey)) {
     console.error('❌ Missing environment variables: SUPABASE_URL, SUPABASE_SERVICE_KEY')
+    console.error('   ヒント: --dry-run オプションでDB保存なしで実行できます')
     process.exit(1)
   }
 
   const scraper = new SuumoScraper({
     requestDelay: 5000, // 5秒間隔でリクエスト
   })
-  const db = new DatabaseService(supabaseUrl, supabaseKey)
+
+  // ドライランでない場合のみ DB サービスを初期化
+  const db = !isDryRun && supabaseUrl && supabaseKey
+    ? new DatabaseService(supabaseUrl, supabaseKey)
+    : null
 
   const allExternalIds: string[] = []
   let totalInserted = 0
@@ -60,25 +74,43 @@ async function main() {
       }
     }
 
-    // Supabase に保存
-    const upsertResult = await db.upsertProperties(result.properties)
-    totalInserted += upsertResult.inserted
-    totalUpdated += upsertResult.updated
-    errors.push(...upsertResult.errors)
+    // ドライランの場合は取得した物件情報を表示
+    if (isDryRun) {
+      console.log('\n--- 取得した物件情報 ---')
+      for (const prop of result.properties) {
+        console.log(`  ${prop.name}`)
+        console.log(`    住所: ${prop.address}`)
+        console.log(`    賃料: ${prop.rent?.toLocaleString()}円`)
+        console.log(`    管理費: ${prop.managementFee?.toLocaleString()}円`)
+        console.log(`    間取り: ${prop.floorPlan}`)
+        console.log(`    面積: ${prop.area}m²`)
+        console.log(`    ID: ${prop.externalId}`)
+        console.log('')
+      }
+    } else if (db) {
+      // Supabase に保存
+      const upsertResult = await db.upsertProperties(result.properties)
+      totalInserted += upsertResult.inserted
+      totalUpdated += upsertResult.updated
+      errors.push(...upsertResult.errors)
 
-    console.log(`💾 Saved: ${upsertResult.inserted} inserted, ${upsertResult.updated} updated`)
+      console.log(`💾 Saved: ${upsertResult.inserted} inserted, ${upsertResult.updated} updated`)
+    }
   }
 
-  // 掲載終了物件を非アクティブ化
-  if (allExternalIds.length > 0) {
+  // 掲載終了物件を非アクティブ化（ドライランでない場合のみ）
+  if (!isDryRun && db && allExternalIds.length > 0) {
     const deactivated = await db.deactivateMissing('suumo', allExternalIds)
     console.log(`🔄 Deactivated: ${deactivated} properties`)
   }
 
   // サマリー
   console.log('\n📊 Summary:')
-  console.log(`   Inserted: ${totalInserted}`)
-  console.log(`   Updated: ${totalUpdated}`)
+  console.log(`   取得物件数: ${allExternalIds.length}`)
+  if (!isDryRun) {
+    console.log(`   Inserted: ${totalInserted}`)
+    console.log(`   Updated: ${totalUpdated}`)
+  }
   console.log(`   Errors: ${errors.length}`)
 
   if (errors.length > 0) {
