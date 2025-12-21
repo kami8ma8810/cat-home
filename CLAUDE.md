@@ -207,3 +207,10 @@ cat-home/
 - 型定義は `packages/shared` で一元管理
 - Supabase のマイグレーションは `supabase/migrations` で管理
 - Edge Functions は `supabase/functions` で実装
+
+### UI ガイドライン
+
+- **絵文字は使用しない**: UI で絵文字（例: 🐱, 🏠）を使用せず、アイコンライブラリを使用する
+  - 推奨: Heroicons（`i-heroicons-*`）、Lucide（`i-lucide-*`）
+  - Iconify 経由で `<UIcon name="i-heroicons-home" />` のように使用
+  - 参考: https://ui.nuxt.com/getting-started/icons
