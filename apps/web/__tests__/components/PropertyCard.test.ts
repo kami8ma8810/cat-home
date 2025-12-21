@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
-import PropertyCard from '../../components/PropertyCard.vue'
-import type { PropertyRow } from '../../types/database.types'
+import PropertyCard from '../../app/components/PropertyCard.vue'
+import type { PropertyRow } from '../../app/types/database.types'
 
 // スタブコンポーネント
 const stubs = {

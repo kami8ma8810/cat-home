@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
-import PropertyDetailPage from '../../pages/properties/[id].vue'
-import type { PropertyRow } from '../../types/database.types'
+import PropertyDetailPage from '../../app/pages/properties/[id].vue'
+import type { PropertyRow } from '../../app/types/database.types'
 
 // グローバルモック
 const mockLoading = ref(false)
