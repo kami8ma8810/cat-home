@@ -8,12 +8,12 @@ const currentYear = new Date().getFullYear()
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <!-- ロゴ -->
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-cat" class="w-6 h-6 text-gray-400" />
+          <UIcon name="i-lucide-cat" class="w-6 h-6 text-gray-400" aria-hidden="true" />
           <span class="text-gray-500">cat-home</span>
         </div>
 
         <!-- リンク -->
-        <nav class="flex items-center gap-6 text-sm text-gray-500">
+        <nav class="flex items-center gap-6 text-sm text-gray-500" aria-label="フッターナビゲーション">
           <NuxtLink to="/about" class="hover:text-gray-700">
             サービスについて
           </NuxtLink>

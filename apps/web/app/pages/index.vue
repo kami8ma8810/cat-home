@@ -10,7 +10,7 @@ useHead({
     <section class="flex items-center justify-center bg-gradient-to-b from-primary-50 to-white min-h-[60vh]">
       <div class="container mx-auto px-4 py-16 text-center">
         <h1 class="text-4xl md:text-6xl font-bold mb-6 flex items-center justify-center gap-3">
-          <UIcon name="i-lucide-cat" class="size-12 md:size-16" />
+          <UIcon name="i-lucide-cat" class="size-12 md:size-16" aria-hidden="true" />
           cat-home
         </h1>
         <p class="text-xl md:text-2xl text-gray-600 mb-8">
@@ -38,7 +38,7 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-                <UIcon name="i-heroicons-home" class="size-10 text-primary" />
+                <UIcon name="i-heroicons-home" class="size-10 text-primary" aria-hidden="true" />
               </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">豊富な物件データ</h3>
@@ -49,7 +49,7 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-                <UIcon name="i-heroicons-magnifying-glass" class="size-10 text-primary" />
+                <UIcon name="i-heroicons-magnifying-glass" class="size-10 text-primary" aria-hidden="true" />
               </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">かんたん検索</h3>
@@ -60,7 +60,7 @@ useHead({
           <UCard>
             <template #header>
               <div class="flex justify-center py-4">
-                <UIcon name="i-heroicons-calendar-days" class="size-10 text-primary" />
+                <UIcon name="i-heroicons-calendar-days" class="size-10 text-primary" aria-hidden="true" />
               </div>
             </template>
             <h3 class="font-bold text-lg mb-2 text-center">毎日更新</h3>

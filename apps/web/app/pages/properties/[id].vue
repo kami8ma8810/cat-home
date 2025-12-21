@@ -109,8 +109,9 @@ const stationInfo = computed(() => {
     </div>
 
     <!-- ローディング -->
-    <div v-if="store.loading" class="flex justify-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" />
+    <div v-if="store.loading" class="flex justify-center py-12" role="status" aria-label="読み込み中">
+      <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
+      <span class="sr-only">物件情報を読み込み中</span>
     </div>
 
     <!-- エラー -->
@@ -124,7 +125,7 @@ const stationInfo = computed(() => {
 
     <!-- 物件が見つからない -->
     <div v-else-if="!property" class="text-center py-12 text-gray-500">
-      <UIcon name="i-heroicons-home" class="w-12 h-12 mx-auto mb-4" />
+      <UIcon name="i-heroicons-home" class="w-12 h-12 mx-auto mb-4" aria-hidden="true" />
       <p class="text-lg">物件が見つかりません</p>
       <NuxtLink to="/properties" class="mt-4 inline-block">
         <UButton variant="outline">
@@ -231,7 +232,7 @@ const stationInfo = computed(() => {
           <!-- 住所 -->
           <UCard>
             <h3 class="font-bold mb-2 flex items-center gap-2">
-              <UIcon name="i-heroicons-map-pin" class="w-5 h-5" />
+              <UIcon name="i-heroicons-map-pin" class="w-5 h-5" aria-hidden="true" />
               住所
             </h3>
             <p>{{ property.address }}</p>
@@ -240,7 +241,7 @@ const stationInfo = computed(() => {
           <!-- 最寄り駅 -->
           <UCard v-if="stationInfo">
             <h3 class="font-bold mb-2 flex items-center gap-2">
-              <UIcon name="i-heroicons-building-office" class="w-5 h-5" />
+              <UIcon name="i-heroicons-building-office" class="w-5 h-5" aria-hidden="true" />
               最寄り駅
             </h3>
             <ul class="space-y-1">
@@ -259,7 +260,7 @@ const stationInfo = computed(() => {
           <!-- 設備・特徴 -->
           <UCard v-if="property.features && property.features.length > 0">
             <h3 class="font-bold mb-3 flex items-center gap-2">
-              <UIcon name="i-heroicons-sparkles" class="w-5 h-5" />
+              <UIcon name="i-heroicons-sparkles" class="w-5 h-5" aria-hidden="true" />
               設備・特徴
             </h3>
             <div class="flex flex-wrap gap-2">
@@ -284,6 +285,7 @@ const stationInfo = computed(() => {
               size="lg"
             >
               物件元サイトで詳細を見る
+              <span class="sr-only">（新しいタブで開きます）</span>
             </UButton>
           </div>
         </div>

@@ -79,7 +79,7 @@ const handleReset = () => {
 
 <template>
   <UCard class="property-search-form">
-    <form @submit.prevent="handleSearch">
+    <form role="search" aria-label="物件検索フォーム" @submit.prevent="handleSearch">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 都道府県 -->
         <UFormGroup label="都道府県">

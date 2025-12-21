@@ -118,6 +118,7 @@ const shortAddress = computed(() => {
       <NuxtLink
         :to="`/properties/${property.id}`"
         class="block"
+        :aria-label="`${property.name}の詳細を見る`"
       >
         <UButton
           block
