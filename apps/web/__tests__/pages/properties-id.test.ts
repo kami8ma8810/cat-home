@@ -73,6 +73,9 @@ const globalMocks = {
   useHead: () => {},
 }
 
+// vi.stubGlobal で Nuxt composables をモック
+vi.stubGlobal('useSeoMeta', vi.fn())
+
 const sampleProperty: PropertyRow = {
   id: 'test-id-123',
   external_id: 'suumo-456',

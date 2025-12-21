@@ -8,10 +8,37 @@ const store = usePropertyStore()
 
 const property = ref<PropertyRow | null>(null)
 
+// 動的タイトル
+const pageTitle = computed(() =>
+  property.value ? `${property.value.name} | cat-home` : '物件詳細 | cat-home'
+)
+
+// 動的OGP説明文
+const pageDescription = computed(() => {
+  if (!property.value) return '猫と暮らせる賃貸物件の詳細情報'
+  const rent = Math.floor(property.value.rent / 10000)
+  return `${property.value.prefecture}${property.value.city}の猫飼育可能物件。${property.value.floor_plan} ${rent}万円/月。${property.value.name}の詳細情報。`
+})
+
+// 動的OGP画像
+const ogImage = computed(() =>
+  property.value?.images?.[0] ?? 'https://cat-home.pages.dev/og-image.png'
+)
+
 useHead({
-  title: computed(() =>
-    property.value ? `${property.value.name} | cat-home` : '物件詳細 | cat-home'
-  ),
+  title: pageTitle,
+})
+
+useSeoMeta({
+  description: pageDescription,
+  ogTitle: pageTitle,
+  ogDescription: pageDescription,
+  ogImage: ogImage,
+  ogType: 'article',
+  twitterCard: 'summary_large_image',
+  twitterTitle: pageTitle,
+  twitterDescription: pageDescription,
+  twitterImage: ogImage,
 })
 
 onMounted(async () => {
