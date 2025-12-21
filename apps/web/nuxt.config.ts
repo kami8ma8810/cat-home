@@ -3,19 +3,19 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-12-21',
   devtools: { enabled: true },
 
-  future: {
-    compatibilityVersion: 4,
-  },
-
   typescript: {
     strict: true,
     typeCheck: true,
   },
 
   modules: [
+    '@nuxt/ui',
     '@nuxt/eslint',
     '@nuxtjs/supabase',
+    '@pinia/nuxt',
   ],
+
+  css: ['~/assets/css/main.css'],
 
   supabase: {
     redirectOptions: {

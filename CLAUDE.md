@@ -8,7 +8,7 @@
 
 | レイヤー | 技術 |
 |---------|------|
-| フロントエンド | Nuxt 3 + Nuxt UI v3 + Pinia |
+| フロントエンド | Nuxt 4 + Nuxt UI v4 + Pinia |
 | バックエンド | Supabase (PostgreSQL + Edge Functions) |
 | ホスティング | Cloudflare Pages |
 | スクレイピング | GitHub Actions + Cheerio |
@@ -32,7 +32,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Cloudflare Pages                              │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                     Nuxt 3 (SSR)                          │  │
+│  │                     Nuxt 4 (SSR)                          │  │
 │  │                                                           │  │
 │  │   【役割】物件データの表示・検索UIの提供                     │  │
 │  │   【やらないこと】スクレイピング ❌                          │  │
@@ -114,7 +114,7 @@
 
 ```
 ┌──────────────────┐     ┌──────────────┐     ┌──────────────┐
-│  GitHub Actions  │ ──▶ │  Supabase    │ ◀── │  Nuxt 3      │
+│  GitHub Actions  │ ──▶ │  Supabase    │ ◀── │  Nuxt 4      │
 │  + Edge Function │     │  (PostgreSQL │     │  (Cloudflare │
 │  + Cheerio       │     │   + Auth)    │     │   Pages)     │
 └──────────────────┘     └──────────────┘     └──────────────┘
@@ -181,7 +181,7 @@
 ```
 cat-home/
 ├── apps/
-│   └── web/                    # Nuxt 3 アプリ
+│   └── web/                    # Nuxt 4 アプリ
 ├── packages/
 │   ├── shared/                 # 共有型定義
 │   └── scraper/                # スクレイパーロジック
@@ -193,7 +193,7 @@ cat-home/
 
 ## パッケージ構成
 
-- `@cat-home/web` - Nuxt 3 フロントエンド
+- `@cat-home/web` - Nuxt 4 フロントエンド
 - `@cat-home/shared` - 共有型定義（Property, SearchParams など）
 - `@cat-home/scraper` - スクレイピングロジック
 
