@@ -1,4 +1,7 @@
+import type { Property, PropertySource } from '@cat-home/shared'
+import type { ScraperConfig, ScrapeResult } from '../types'
 import * as cheerio from 'cheerio'
+import { BaseScraper } from './base'
 
 interface ScrapedProperty {
   name: string
@@ -9,12 +12,71 @@ interface ScrapedProperty {
   area: number
   sourceUrl: string
   externalId: string
-  source: string
+  source: PropertySource
 }
 
 const SUUMO_BASE_URL = 'https://suumo.jp'
 
-export class SuumoScraper {
+/**
+ * SUUMO 物件情報スクレイパー
+ *
+ * @example
+ * ```ts
+ * const scraper = new SuumoScraper()
+ * const result = await scraper.scrapeList('https://suumo.jp/chintai/tokyo/...')
+ * console.log(result.properties)
+ * ```
+ */
+export class SuumoScraper extends BaseScraper {
+  readonly source = 'suumo' as const
+
+  constructor(config: Partial<ScraperConfig> = {}) {
+    super(config)
+  }
+
+  /**
+   * 物件一覧ページをスクレイピング
+   */
+  async scrapeList(url: string): Promise<ScrapeResult> {
+    const startTime = Date.now()
+
+    try {
+      await this.respectRateLimit()
+      const html = await this.fetchWithRetry(url)
+      const properties = this.parseListHtml(html)
+
+      return {
+        success: true,
+        properties: properties.map(p => this.toPartialProperty(p)),
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
+    }
+    catch (error) {
+      return {
+        success: false,
+        properties: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
+    }
+  }
+
+  /**
+   * 物件詳細ページをスクレイピング（未実装）
+   */
+  async scrapeDetail(_url: string): Promise<ScrapeResult> {
+    // TODO: 詳細ページのパース実装
+    return {
+      success: false,
+      properties: [],
+      error: 'Not implemented',
+      source: this.source,
+      duration: 0,
+    }
+  }
+
   /**
    * 物件一覧HTMLをパースして物件情報を抽出する
    */
@@ -105,5 +167,46 @@ export class SuumoScraper {
     }
     const value = parseInt(text.replace(/[^0-9]/g, ''), 10)
     return isNaN(value) ? 0 : value
+  }
+
+  /**
+   * ScrapedProperty を Partial<Property> に変換
+   */
+  private toPartialProperty(scraped: ScrapedProperty): Partial<Property> {
+    // 住所から都道府県・市区町村を抽出
+    const { prefecture, city } = this.parseAddress(scraped.address)
+
+    return {
+      externalId: scraped.externalId,
+      source: scraped.source,
+      name: scraped.name,
+      address: scraped.address,
+      prefecture,
+      city,
+      rent: scraped.rent,
+      managementFee: scraped.managementFee,
+      floorPlan: scraped.floorPlan,
+      area: scraped.area,
+      sourceUrl: scraped.sourceUrl,
+    }
+  }
+
+  /**
+   * 住所から都道府県・市区町村を抽出
+   */
+  private parseAddress(address: string): { prefecture: string; city: string } {
+    // 都道府県を抽出（北海道、東京都、大阪府、京都府、〜県）
+    const prefectureMatch = address.match(
+      /^(北海道|東京都|大阪府|京都府|.{2,3}県)/,
+    )
+    const prefecture = prefectureMatch ? prefectureMatch[1] : ''
+
+    // 市区町村を抽出（〜市、〜区、〜町、〜村）
+    const cityMatch = address.match(
+      /(?:北海道|東京都|大阪府|京都府|.{2,3}県)(.+?[市区町村])/,
+    )
+    const city = cityMatch ? cityMatch[1] : ''
+
+    return { prefecture, city }
   }
 }

@@ -1,5 +1,5 @@
 export { BaseScraper } from './base'
+export { SuumoScraper } from './suumo'
 
-// TODO: 各サイトのスクレイパーを追加
-// export { SuumoScraper } from './suumo'
+// TODO: 他サイトのスクレイパーを追加
 // export { HomesScraper } from './homes'
