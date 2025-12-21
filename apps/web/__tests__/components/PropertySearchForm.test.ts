@@ -13,10 +13,10 @@ vi.mock('~/stores/property', () => ({
 
 // スタブコンポーネント
 const stubs = {
-  UFormGroup: defineComponent({
+  UFormField: defineComponent({
     props: ['label'],
     setup(props, { slots }) {
-      return () => h('div', { class: 'u-form-group' }, [
+      return () => h('div', { class: 'u-form-field' }, [
         h('label', props.label),
         slots.default?.(),
       ])

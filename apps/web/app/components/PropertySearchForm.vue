@@ -82,40 +82,40 @@ const handleReset = () => {
     <form role="search" aria-label="物件検索フォーム" @submit.prevent="handleSearch">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 都道府県 -->
-        <UFormGroup label="都道府県">
+        <UFormField label="都道府県">
           <USelect
             v-model="prefecture"
             :options="prefectureOptions"
             placeholder="選択してください"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- 賃料下限 -->
-        <UFormGroup label="賃料（下限）">
+        <UFormField label="賃料（下限）">
           <UInput
             v-model="rentMin"
             type="number"
             placeholder="例: 50000"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- 賃料上限 -->
-        <UFormGroup label="賃料（上限）">
+        <UFormField label="賃料（上限）">
           <UInput
             v-model="rentMax"
             type="number"
             placeholder="例: 100000"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- 間取り -->
-        <UFormGroup label="間取り">
+        <UFormField label="間取り">
           <USelect
             v-model="floorPlan"
             :options="floorPlanOptions"
             placeholder="選択してください"
           />
-        </UFormGroup>
+        </UFormField>
       </div>
 
       <!-- ボタン -->
