@@ -62,7 +62,7 @@ const shortAddress = computed(() => {
           :src="property.images[0]"
           :alt="property.name"
           class="w-full h-full object-cover"
-        />
+        >
         <div v-else class="flex items-center justify-center h-full text-gray-400">
           No Image
         </div>
