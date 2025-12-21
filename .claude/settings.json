@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "TodoWrite",
+      "Task",
+      "Bash",
+      "WebSearch",
+      "WebFetch",
+      "Skill"
+    ],
+    "deny": []
+  }
+}
