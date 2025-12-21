@@ -1,0 +1,110 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { SuumoScraper } from '../sources/suumo'
+
+// テスト用HTMLの読み込み
+const listHtml = readFileSync(
+  resolve(__dirname, 'fixtures/suumo-list.html'),
+  'utf-8',
+)
+
+describe('SuumoScraper', () => {
+  describe('parseListHtml', () => {
+    it('物件一覧HTMLから物件情報を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties).toHaveLength(2)
+    })
+
+    it('物件名を正しく抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].name).toBe('メゾン猫の家')
+      expect(properties[1].name).toBe('キャットハウス目黒')
+    })
+
+    it('住所を正しく抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].address).toBe('東京都渋谷区神宮前1-1-1')
+      expect(properties[1].address).toBe('東京都目黒区中目黒2-2-2')
+    })
+
+    it('賃料を数値（円）で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].rent).toBe(85000) // 8.5万円 = 85000円
+      expect(properties[1].rent).toBe(120000) // 12万円 = 120000円
+    })
+
+    it('管理費を数値（円）で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].managementFee).toBe(5000)
+      expect(properties[1].managementFee).toBe(8000)
+    })
+
+    it('間取りを抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].floorPlan).toBe('1K')
+      expect(properties[1].floorPlan).toBe('1LDK')
+    })
+
+    it('専有面積を数値（m²）で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].area).toBe(25.5)
+      expect(properties[1].area).toBe(40.2)
+    })
+
+    it('詳細ページへのURLを抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].sourceUrl).toContain('/chintai/jnc_000000001/')
+      expect(properties[1].sourceUrl).toContain('/chintai/jnc_000000002/')
+    })
+
+    it('external_id を URL から抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].externalId).toBe('jnc_000000001')
+      expect(properties[1].externalId).toBe('jnc_000000002')
+    })
+
+    it('source が "suumo" になる', () => {
+      const scraper = new SuumoScraper()
+      const properties = scraper.parseListHtml(listHtml)
+
+      expect(properties[0].source).toBe('suumo')
+      expect(properties[1].source).toBe('suumo')
+    })
+  })
+
+  describe('parseRent', () => {
+    it('「8.5万円」を 85000 に変換できる', () => {
+      const scraper = new SuumoScraper()
+      expect(scraper.parseRent('8.5')).toBe(85000)
+    })
+
+    it('「12万円」を 120000 に変換できる', () => {
+      const scraper = new SuumoScraper()
+      expect(scraper.parseRent('12')).toBe(120000)
+    })
+
+    it('「-」は 0 を返す', () => {
+      const scraper = new SuumoScraper()
+      expect(scraper.parseRent('-')).toBe(0)
+    })
+  })
+})
