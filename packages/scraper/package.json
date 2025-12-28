@@ -13,6 +13,9 @@
   "scripts": {
     "scrape:suumo": "tsx src/scripts/run-suumo.ts",
     "scrape:door": "tsx src/scripts/run-door.ts",
+    "scrape:homes": "tsx src/scripts/run-homes.ts",
+    "scrape:chintai": "tsx src/scripts/run-chintai.ts",
+    "scrape:nifty": "tsx src/scripts/run-nifty.ts",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit"
