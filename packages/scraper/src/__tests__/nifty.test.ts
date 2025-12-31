@@ -6,11 +6,16 @@ import { NiftyScraper } from '../sources/nifty'
 describe('NiftyScraper', () => {
   let scraper: NiftyScraper
   let fixtureHtml: string
+  let detailHtml: string
 
   beforeEach(() => {
     scraper = new NiftyScraper()
     fixtureHtml = readFileSync(
       join(__dirname, 'fixtures/nifty-list.html'),
+      'utf-8',
+    )
+    detailHtml = readFileSync(
+      join(__dirname, 'fixtures/nifty-detail.html'),
       'utf-8',
     )
   })
@@ -182,6 +187,101 @@ describe('NiftyScraper', () => {
 
     it('サフィックスがない場合はそのまま返す', () => {
       expect(scraper.cleanBuildingName('新宿マンション')).toBe('新宿マンション')
+    })
+  })
+
+  describe('parseDetailHtml', () => {
+    it('物件名を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.name).toBe('ペット可ハイツ新宿')
+    })
+
+    it('住所を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.address).toBe('東京都新宿区西新宿3-8-12')
+    })
+
+    it('賃料を円で抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.rent).toBe(185000)
+    })
+
+    it('管理費を円で抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.managementFee).toBe(15000)
+    })
+
+    it('敷金を円で抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      // 2ヶ月 × 185000円 = 370000円
+      expect(result.deposit).toBe(370000)
+    })
+
+    it('礼金を円で抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      // 1ヶ月 × 185000円 = 185000円
+      expect(result.keyMoney).toBe(185000)
+    })
+
+    it('間取りを抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floorPlan).toBe('2LDK')
+    })
+
+    it('専有面積を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.area).toBe(58.2)
+    })
+
+    it('築年を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.yearBuilt).toBe(2019)
+    })
+
+    it('建物種別を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.buildingType).toBe('mansion')
+    })
+
+    it('建物の階数を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floors).toBe(15)
+    })
+
+    it('最寄り駅情報を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.nearestStations).toHaveLength(2)
+      expect(result.nearestStations[0]).toEqual({
+        line: '都営大江戸線',
+        station: '都庁前駅',
+        walkMinutes: 6,
+        busMinutes: null,
+      })
+    })
+
+    it('設備情報を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.features).toContain('エアコン')
+      expect(result.features).toContain('オートロック')
+      expect(result.features).toContain('ディスポーザー')
+      expect(result.features).toContain('ペット可')
+    })
+
+    it('画像URLを抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.images).toHaveLength(5)
+      expect(result.images[0]).toBe('https://img.nifty.com/photo001_large.jpg')
+    })
+
+    it('ペット条件を抽出できる', () => {
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.petConditions).not.toBeNull()
+      expect(result.petConditions?.catAllowed).toBe(true)
+      expect(result.petConditions?.catLimit).toBe(3)
+      expect(result.petConditions?.dogAllowed).toBe(true)
+      expect(result.petConditions?.smallDogOnly).toBe(true)
+      expect(result.petConditions?.additionalDeposit).toBe(185000)
+      expect(result.petConditions?.notes).toContain('管理組合への届出が必要')
     })
   })
 })

@@ -1,20 +1,23 @@
 /**
- * SUUMO スクレイピング実行スクリプト
+ * SUUMO scraping run script
  *
- * 環境変数:
- *   - SUPABASE_URL: Supabase プロジェクト URL
- *   - SUPABASE_SERVICE_KEY: Supabase サービスロールキー（service_role）
+ * Environment variables:
+ *   - SUPABASE_URL: Supabase project URL
+ *   - SUPABASE_SERVICE_KEY: Supabase service role key
  *
- * 使用方法:
- *   pnpm --filter @cat-home/scraper scrape:suumo           # 通常実行（DB保存あり）
- *   pnpm --filter @cat-home/scraper scrape:suumo --dry-run # ドライラン（DB保存なし）
+ * Usage:
+ *   pnpm --filter @cat-home/scraper scrape:suumo                    # Normal run (DB save)
+ *   pnpm --filter @cat-home/scraper scrape:suumo --dry-run          # Dry run (no DB save)
+ *   pnpm --filter @cat-home/scraper scrape:suumo --with-details     # Also scrape detail pages
  */
+import type { Property } from '@cat-home/shared'
 import { DatabaseService } from '../services/database'
 import { SuumoScraper } from '../sources/suumo'
 
-// コマンドライン引数の解析
+// Parse command line arguments
 const args = process.argv.slice(2)
 const isDryRun = args.includes('--dry-run')
+const withDetails = args.includes('--with-details')
 
 // 猫飼育可物件の検索URL（東京都）
 const SUUMO_SEARCH_URLS = [

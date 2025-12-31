@@ -9,6 +9,11 @@ const listHtml = readFileSync(
   'utf-8',
 )
 
+const detailHtml = readFileSync(
+  resolve(__dirname, 'fixtures/suumo-detail.html'),
+  'utf-8',
+)
+
 describe('SuumoScraper', () => {
   describe('parseListHtml', () => {
     it('物件一覧HTMLから物件情報を抽出できる', () => {
@@ -127,6 +132,120 @@ describe('SuumoScraper', () => {
     it('「-」は 0 を返す', () => {
       const scraper = new SuumoScraper()
       expect(scraper.parseRent('-')).toBe(0)
+    })
+  })
+
+  describe('parseDetailHtml', () => {
+    it('物件名を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.name).toBe('メゾン猫の家')
+    })
+
+    it('住所を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.address).toBe('東京都渋谷区神宮前1-1-1')
+    })
+
+    it('賃料を円で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.rent).toBe(85000)
+    })
+
+    it('管理費を円で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.managementFee).toBe(5000)
+    })
+
+    it('敷金を円で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.deposit).toBe(85000)
+    })
+
+    it('礼金を円で抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.keyMoney).toBe(85000)
+    })
+
+    it('間取りを抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floorPlan).toBe('1K')
+    })
+
+    it('専有面積を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.area).toBe(25.5)
+    })
+
+    it('築年を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.yearBuilt).toBe(2019)
+    })
+
+    it('建物種別を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.buildingType).toBe('mansion')
+    })
+
+    it('建物の階数を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floors).toBe(10)
+    })
+
+    it('最寄り駅情報を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.nearestStations).toHaveLength(2)
+      expect(result.nearestStations[0]).toEqual({
+        line: 'JR山手線',
+        station: '渋谷駅',
+        walkMinutes: 5,
+        busMinutes: null,
+      })
+      expect(result.nearestStations[1]).toEqual({
+        line: '東京メトロ銀座線',
+        station: '表参道駅',
+        walkMinutes: 8,
+        busMinutes: null,
+      })
+    })
+
+    it('設備情報を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.features).toContain('エアコン')
+      expect(result.features).toContain('オートロック')
+      expect(result.features).toContain('宅配ボックス')
+      expect(result.features).toContain('ペット可')
+    })
+
+    it('画像URLを抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.images).toHaveLength(3)
+      expect(result.images[0]).toBe('https://img.suumo.jp/image/photo001.jpg')
+    })
+
+    it('ペット条件を抽出できる', () => {
+      const scraper = new SuumoScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.petConditions).not.toBeNull()
+      expect(result.petConditions?.catAllowed).toBe(true)
+      expect(result.petConditions?.catLimit).toBe(2)
+      expect(result.petConditions?.dogAllowed).toBe(true)
+      expect(result.petConditions?.smallDogOnly).toBe(true)
+      expect(result.petConditions?.additionalDeposit).toBe(85000)
+      expect(result.petConditions?.notes).toContain('ペット飼育の場合は審査あり')
     })
   })
 })

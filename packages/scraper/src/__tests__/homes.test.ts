@@ -9,6 +9,11 @@ describe('HomesScraper', () => {
     'utf-8',
   )
 
+  const detailHtml = readFileSync(
+    resolve(__dirname, 'fixtures/homes-detail.html'),
+    'utf-8',
+  )
+
   describe('parseListHtml', () => {
     it('物件一覧HTMLから物件情報を抽出できる', () => {
       const scraper = new HomesScraper()
@@ -144,6 +149,116 @@ describe('HomesScraper', () => {
     it('空文字を 0 に変換できる', () => {
       const scraper = new HomesScraper()
       expect(scraper.parseManagementFee('')).toBe(0)
+    })
+  })
+
+  describe('parseDetailHtml', () => {
+    it('物件名を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.name).toBe('ペット可レジデンス目黒')
+    })
+
+    it('住所を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.address).toBe('東京都目黒区中目黒2-5-8')
+    })
+
+    it('賃料を円で抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.rent).toBe(145000)
+    })
+
+    it('管理費を円で抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.managementFee).toBe(12000)
+    })
+
+    it('敷金を円で抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      // 1ヶ月 × 145000円 = 145000円
+      expect(result.deposit).toBe(145000)
+    })
+
+    it('礼金を円で抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      // 1ヶ月 × 145000円 = 145000円
+      expect(result.keyMoney).toBe(145000)
+    })
+
+    it('間取りを抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floorPlan).toBe('1LDK')
+    })
+
+    it('専有面積を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.area).toBe(42.5)
+    })
+
+    it('築年を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.yearBuilt).toBe(2020)
+    })
+
+    it('建物種別を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.buildingType).toBe('mansion')
+    })
+
+    it('建物の階数を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.floors).toBe(10)
+    })
+
+    it('最寄り駅情報を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.nearestStations).toHaveLength(3)
+      expect(result.nearestStations[0]).toEqual({
+        line: '東急東横線',
+        station: '中目黒駅',
+        walkMinutes: 8,
+        busMinutes: null,
+      })
+    })
+
+    it('設備情報を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.features).toContain('エアコン')
+      expect(result.features).toContain('オートロック')
+      expect(result.features).toContain('床暖房')
+      expect(result.features).toContain('ペット相談')
+    })
+
+    it('画像URLを抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.images).toHaveLength(4)
+      expect(result.images[0]).toBe('https://img.homes.jp/photo001_full.jpg')
+    })
+
+    it('ペット条件を抽出できる', () => {
+      const scraper = new HomesScraper()
+      const result = scraper.parseDetailHtml(detailHtml)
+      expect(result.petConditions).not.toBeNull()
+      expect(result.petConditions?.catAllowed).toBe(true)
+      expect(result.petConditions?.catLimit).toBe(2)
+      expect(result.petConditions?.dogAllowed).toBe(true)
+      expect(result.petConditions?.smallDogOnly).toBe(true)
+      expect(result.petConditions?.additionalDeposit).toBe(145000)
+      expect(result.petConditions?.notes).toContain('猫は2匹まで')
     })
   })
 })

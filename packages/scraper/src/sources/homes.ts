@@ -1,7 +1,8 @@
-import type { Property, PropertySource } from '@cat-home/shared'
+import type { BuildingType, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
 import type { ScraperConfig, ScrapeResult } from '../types'
 import * as cheerio from 'cheerio'
 import { BaseScraper } from './base'
+import { parsePetConditions } from '../utils/pet-condition-parser'
 
 interface ScrapedProperty {
   name: string
@@ -13,6 +14,25 @@ interface ScrapedProperty {
   sourceUrl: string
   externalId: string
   source: PropertySource
+}
+
+/** 詳細ページからスクレイピングした物件情報 */
+export interface ScrapedDetailProperty {
+  name: string
+  address: string
+  rent: number
+  managementFee: number
+  deposit: number
+  keyMoney: number
+  floorPlan: string
+  area: number
+  yearBuilt: number | null
+  buildingType: BuildingType | null
+  floors: number | null
+  nearestStations: NearestStation[]
+  features: string[]
+  images: string[]
+  petConditions: PetConditions | null
 }
 
 /**
@@ -62,16 +82,279 @@ export class HomesScraper extends BaseScraper {
   }
 
   /**
-   * 物件詳細ページをスクレイピング（未実装）
+   * 物件詳細ページをスクレイピング
    */
-  async scrapeDetail(_url: string): Promise<ScrapeResult> {
-    return {
-      success: false,
-      properties: [],
-      error: 'Not implemented',
-      source: this.source,
-      duration: 0,
+  async scrapeDetail(url: string): Promise<ScrapeResult> {
+    const startTime = Date.now()
+
+    try {
+      await this.respectRateLimit()
+      const html = await this.fetchWithRetry(url)
+      const detail = this.parseDetailHtml(html)
+
+      // 住所から都道府県・市区町村を抽出
+      const { prefecture, city } = this.parseAddress(detail.address)
+
+      // external_id を URL から抽出
+      const externalIdMatch = url.match(/\/chintai\/room\/([a-f0-9]+)\//)
+      const externalId = externalIdMatch ? externalIdMatch[1] : ''
+
+      const property: Partial<Property> = {
+        externalId,
+        source: this.source,
+        name: detail.name,
+        address: detail.address,
+        prefecture,
+        city,
+        rent: detail.rent,
+        managementFee: detail.managementFee,
+        deposit: detail.deposit,
+        keyMoney: detail.keyMoney,
+        floorPlan: detail.floorPlan,
+        area: detail.area,
+        buildingType: detail.buildingType,
+        floors: detail.floors,
+        yearBuilt: detail.yearBuilt,
+        petConditions: detail.petConditions,
+        features: detail.features,
+        nearestStations: detail.nearestStations,
+        images: detail.images,
+        sourceUrl: url,
+      }
+
+      return {
+        success: true,
+        properties: [property],
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
     }
+    catch (error) {
+      return {
+        success: false,
+        properties: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
+    }
+  }
+
+  /**
+   * 物件詳細ページのHTMLをパースして詳細情報を抽出する
+   */
+  parseDetailHtml(html: string): ScrapedDetailProperty {
+    const $ = cheerio.load(html)
+
+    // 物件名
+    const name = $('.mod-buildingHeader .heading').text().trim()
+
+    // 住所
+    const address = $('.mod-buildingDetail .address').text().trim()
+
+    // 賃料・管理費・敷金・礼金
+    const rentText = $('.mod-priceDetail .rent .price').text().trim()
+    const rent = this.parseRent(rentText + '万円')
+
+    const managementFeeText = $('.mod-priceDetail .managementFee').text().trim()
+    const managementFee = this.parseManagementFee(managementFeeText)
+
+    const depositText = $('.mod-priceDetail .deposit').text().trim()
+    const deposit = this.parseDepositWithRent(depositText, rent)
+
+    const keyMoneyText = $('.mod-priceDetail .keyMoney').text().trim()
+    const keyMoney = this.parseDepositWithRent(keyMoneyText, rent)
+
+    // 間取り・面積
+    const floorPlan = $('.mod-roomDetail .floorPlan').text().trim()
+    const areaText = $('.mod-roomDetail .area').text().trim()
+    const areaMatch = areaText.match(/([0-9.]+)/)
+    const area = areaMatch ? parseFloat(areaMatch[1]) : 0
+
+    // 築年
+    const yearBuilt = this.parseYearBuilt($)
+
+    // 建物種別
+    const buildingType = this.parseBuildingType($)
+
+    // 階数
+    const floors = this.parseFloors($)
+
+    // 最寄り駅
+    const nearestStations = this.parseNearestStations($)
+
+    // 設備情報
+    const features: string[] = []
+    $('.mod-equipment .equipmentList li').each((_, el) => {
+      const feature = $(el).text().trim()
+      if (feature) {
+        features.push(feature)
+      }
+    })
+
+    // 画像URL
+    const images: string[] = []
+    $('.mod-gallery .galleryList a').each((_, el) => {
+      const href = $(el).attr('href')
+      if (href) {
+        images.push(href)
+      }
+    })
+
+    // ペット条件
+    const petConditions = this.parsePetConditionsFromHtml($, rent)
+
+    return {
+      name,
+      address,
+      rent,
+      managementFee,
+      deposit,
+      keyMoney,
+      floorPlan,
+      area,
+      yearBuilt,
+      buildingType,
+      floors,
+      nearestStations,
+      features,
+      images,
+      petConditions,
+    }
+  }
+
+  /**
+   * 敷金・礼金テキストを円に変換（「Nヶ月」形式対応）
+   */
+  private parseDepositWithRent(text: string, rent: number): number {
+    if (!text || text === '-' || text === 'なし') {
+      return 0
+    }
+    // 「Nヶ月」形式
+    const monthMatch = text.match(/(\d+)[ヶか]月/)
+    if (monthMatch) {
+      const months = parseInt(monthMatch[1], 10)
+      return rent * months
+    }
+    // 万円形式
+    const rentValue = this.parseRent(text)
+    if (rentValue > 0) {
+      return rentValue
+    }
+    return 0
+  }
+
+  /**
+   * 築年月テキストから築年を抽出
+   */
+  private parseYearBuilt($: cheerio.CheerioAPI): number | null {
+    let text = ''
+    $('.mod-buildingDetail table tr').each((_, row) => {
+      const th = $(row).find('th').text().trim()
+      if (th === '築年月') {
+        text = $(row).find('td').text().trim()
+        return false
+      }
+    })
+    const match = text.match(/(\d{4})年/)
+    return match ? parseInt(match[1], 10) : null
+  }
+
+  /**
+   * 建物種別テキストを BuildingType に変換
+   */
+  private parseBuildingType($: cheerio.CheerioAPI): BuildingType | null {
+    let text = ''
+    $('.mod-buildingDetail table tr').each((_, row) => {
+      const th = $(row).find('th').text().trim()
+      if (th === '建物種別') {
+        text = $(row).find('td').text().trim()
+        return false
+      }
+    })
+    if (text.includes('マンション')) return 'mansion'
+    if (text.includes('アパート')) return 'apartment'
+    if (text.includes('一戸建て') || text.includes('戸建')) return 'house'
+    if (text.includes('テラスハウス') || text.includes('タウンハウス')) return 'terraced'
+    if (text) return 'other'
+    return null
+  }
+
+  /**
+   * 建物構造テキストから階数を抽出
+   */
+  private parseFloors($: cheerio.CheerioAPI): number | null {
+    let text = ''
+    $('.mod-buildingDetail table tr').each((_, row) => {
+      const th = $(row).find('th').text().trim()
+      if (th === '構造') {
+        text = $(row).find('td').text().trim()
+        return false
+      }
+    })
+    const match = text.match(/(\d+)階建/)
+    return match ? parseInt(match[1], 10) : null
+  }
+
+  /**
+   * 最寄り駅情報を抽出
+   */
+  private parseNearestStations($: cheerio.CheerioAPI): NearestStation[] {
+    const stations: NearestStation[] = []
+    $('.mod-buildingDetail .access li').each((_, el) => {
+      const text = $(el).text().trim()
+      // 「東急東横線 中目黒駅 徒歩8分」のパターンを解析
+      const match = text.match(/(.+?)\s+(.+?駅)\s*徒歩(\d+)分/)
+      if (match) {
+        stations.push({
+          line: match[1].trim(),
+          station: match[2].trim(),
+          walkMinutes: parseInt(match[3], 10),
+          busMinutes: null,
+        })
+      }
+    })
+    return stations
+  }
+
+  /**
+   * HTMLからペット条件を抽出
+   */
+  private parsePetConditionsFromHtml($: cheerio.CheerioAPI, rent: number): PetConditions | null {
+    const petConditions: string[] = []
+    let notes: string | undefined
+
+    // ペットセクションを探す
+    $('.mod-petInfo table tr').each((_, row) => {
+      const $row = $(row)
+      const th = $row.find('th').text().trim()
+
+      if (th === 'ペット') {
+        $row.find('td li').each((_, li) => {
+          const condition = $(li).text().trim()
+          if (condition) {
+            petConditions.push(condition)
+          }
+        })
+      }
+
+      if (th === 'ペット敷金') {
+        const additionalCost = $row.find('td').text().trim()
+        if (additionalCost) {
+          petConditions.push(additionalCost)
+        }
+      }
+
+      if (th === '備考') {
+        notes = $row.find('td').text().trim()
+      }
+    })
+
+    if (petConditions.length === 0) {
+      return null
+    }
+
+    return parsePetConditions(petConditions, rent, notes)
   }
 
   /**

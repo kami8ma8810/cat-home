@@ -1,7 +1,8 @@
-import type { Property, PropertySource } from '@cat-home/shared'
+import type { BuildingType, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
 import type { ScraperConfig, ScrapeResult } from '../types'
 import * as cheerio from 'cheerio'
 import { BaseScraper } from './base'
+import { parsePetConditions } from '../utils/pet-condition-parser'
 
 interface ScrapedProperty {
   name: string
@@ -13,6 +14,25 @@ interface ScrapedProperty {
   sourceUrl: string
   externalId: string
   source: PropertySource
+}
+
+/** 詳細ページからスクレイピングした物件情報 */
+export interface ScrapedDetailProperty {
+  name: string
+  address: string
+  rent: number
+  managementFee: number
+  deposit: number
+  keyMoney: number
+  floorPlan: string
+  area: number
+  yearBuilt: number | null
+  buildingType: BuildingType | null
+  floors: number | null
+  nearestStations: NearestStation[]
+  features: string[]
+  images: string[]
+  petConditions: PetConditions | null
 }
 
 const SUUMO_BASE_URL = 'https://suumo.jp'
@@ -64,16 +84,61 @@ export class SuumoScraper extends BaseScraper {
   }
 
   /**
-   * 物件詳細ページをスクレイピング（未実装）
+   * 物件詳細ページをスクレイピング
    */
-  async scrapeDetail(_url: string): Promise<ScrapeResult> {
-    // TODO: 詳細ページのパース実装
-    return {
-      success: false,
-      properties: [],
-      error: 'Not implemented',
-      source: this.source,
-      duration: 0,
+  async scrapeDetail(url: string): Promise<ScrapeResult> {
+    const startTime = Date.now()
+
+    try {
+      await this.respectRateLimit()
+      const html = await this.fetchWithRetry(url)
+      const detail = this.parseDetailHtml(html)
+
+      // 住所から都道府県・市区町村を抽出
+      const { prefecture, city } = this.parseAddress(detail.address)
+
+      // external_id を URL から抽出
+      const externalIdMatch = url.match(/\/chintai\/(jnc_[^/]+)\//)
+      const externalId = externalIdMatch ? externalIdMatch[1] : ''
+
+      const property: Partial<Property> = {
+        externalId,
+        source: this.source,
+        name: detail.name,
+        address: detail.address,
+        prefecture,
+        city,
+        rent: detail.rent,
+        managementFee: detail.managementFee,
+        deposit: detail.deposit,
+        keyMoney: detail.keyMoney,
+        floorPlan: detail.floorPlan,
+        area: detail.area,
+        buildingType: detail.buildingType,
+        floors: detail.floors,
+        yearBuilt: detail.yearBuilt,
+        petConditions: detail.petConditions,
+        features: detail.features,
+        nearestStations: detail.nearestStations,
+        images: detail.images,
+        sourceUrl: url,
+      }
+
+      return {
+        success: true,
+        properties: [property],
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
+    }
+    catch (error) {
+      return {
+        success: false,
+        properties: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+        source: this.source,
+        duration: Date.now() - startTime,
+      }
     }
   }
 
@@ -189,6 +254,195 @@ export class SuumoScraper extends BaseScraper {
     }
     const value = parseInt(text.replace(/[^0-9]/g, ''), 10)
     return isNaN(value) ? 0 : value
+  }
+
+  /**
+   * 物件詳細ページのHTMLをパースして詳細情報を抽出する
+   */
+  parseDetailHtml(html: string): ScrapedDetailProperty {
+    const $ = cheerio.load(html)
+
+    // 物件名
+    const name = $('.section_h1-header-title-text').text().trim()
+
+    // 住所
+    const address = this.extractTableValue($, '所在地')
+
+    // 賃料・管理費・敷金・礼金
+    const rentText = $('.property_view_detail-emphasis').first().text().trim()
+    const rent = this.parseRent(rentText)
+
+    const managementFeeText = this.extractTableValue($, '管理費・共益費')
+    const managementFee = this.parseManagementFee(managementFeeText)
+
+    const depositText = this.extractTableValue($, '敷金')
+    const deposit = this.parseRent(depositText)
+
+    const keyMoneyText = this.extractTableValue($, '礼金')
+    const keyMoney = this.parseRent(keyMoneyText)
+
+    // 間取り・面積
+    const floorPlan = this.extractTableValue($, '間取り')
+    const areaText = this.extractTableValue($, '専有面積')
+    const area = parseFloat(areaText) || 0
+
+    // 築年
+    const yearBuiltText = this.extractTableValue($, '築年月')
+    const yearBuilt = this.parseYearBuilt(yearBuiltText)
+
+    // 建物種別
+    const buildingTypeText = this.extractTableValue($, '建物種別')
+    const buildingType = this.parseBuildingType(buildingTypeText)
+
+    // 階数
+    const structureText = this.extractTableValue($, '建物構造')
+    const floors = this.parseFloors(structureText)
+
+    // 最寄り駅
+    const transportText = this.extractTableValue($, '交通')
+    const nearestStations = this.parseNearestStations(transportText)
+
+    // 設備情報
+    const features: string[] = []
+    $('.property_view_tag li span').each((_, el) => {
+      const feature = $(el).text().trim()
+      if (feature) {
+        features.push(feature)
+      }
+    })
+
+    // 画像URL
+    const images: string[] = []
+    $('.property_view_gallery-list a').each((_, el) => {
+      const href = $(el).attr('href')
+      if (href) {
+        images.push(href)
+      }
+    })
+
+    // ペット条件
+    const petConditions = this.parsePetConditionsFromHtml($, rent)
+
+    return {
+      name,
+      address,
+      rent,
+      managementFee,
+      deposit,
+      keyMoney,
+      floorPlan,
+      area,
+      yearBuilt,
+      buildingType,
+      floors,
+      nearestStations,
+      features,
+      images,
+      petConditions,
+    }
+  }
+
+  /**
+   * テーブルから指定したラベルの値を抽出
+   */
+  private extractTableValue($: cheerio.CheerioAPI, label: string): string {
+    let value = ''
+    $('table tr').each((_, row) => {
+      const $row = $(row)
+      const th = $row.find('th').text().trim()
+      if (th === label) {
+        value = $row.find('td').text().trim()
+        return false // break
+      }
+    })
+    return value
+  }
+
+  /**
+   * 築年月テキストから築年を抽出
+   * 例: "2019年3月" → 2019
+   */
+  private parseYearBuilt(text: string): number | null {
+    const match = text.match(/(\d{4})年/)
+    return match ? parseInt(match[1], 10) : null
+  }
+
+  /**
+   * 建物種別テキストを BuildingType に変換
+   */
+  private parseBuildingType(text: string): BuildingType | null {
+    if (text.includes('マンション')) return 'mansion'
+    if (text.includes('アパート')) return 'apartment'
+    if (text.includes('一戸建て') || text.includes('戸建')) return 'house'
+    if (text.includes('テラスハウス') || text.includes('タウンハウス')) return 'terraced'
+    if (text) return 'other'
+    return null
+  }
+
+  /**
+   * 建物構造テキストから階数を抽出
+   * 例: "RC / 10階建" → 10
+   */
+  private parseFloors(text: string): number | null {
+    const match = text.match(/(\d+)階建/)
+    return match ? parseInt(match[1], 10) : null
+  }
+
+  /**
+   * 交通情報テキストから最寄り駅情報を抽出
+   * 例: "JR山手線/渋谷駅 歩5分" → { line: 'JR山手線', station: '渋谷駅', walkMinutes: 5 }
+   */
+  private parseNearestStations(text: string): NearestStation[] {
+    const stations: NearestStation[] = []
+    // 複数の駅情報を分割（改行やスペースで区切られている可能性）
+    const lines = text.split(/[\n\r]+/).filter(s => s.trim())
+
+    for (const line of lines) {
+      const match = line.match(/(.+?)\/(.+?駅)\s*歩(\d+)分/)
+      if (match) {
+        stations.push({
+          line: match[1].trim(),
+          station: match[2].trim(),
+          walkMinutes: parseInt(match[3], 10),
+          busMinutes: null,
+        })
+      }
+    }
+
+    return stations
+  }
+
+  /**
+   * HTMLからペット条件を抽出
+   */
+  private parsePetConditionsFromHtml($: cheerio.CheerioAPI, rent: number): PetConditions | null {
+    const petConditions: string[] = []
+    let notes: string | undefined
+
+    // ペットセクションを探す
+    $('table tr').each((_, row) => {
+      const $row = $(row)
+      const th = $row.find('th').text().trim()
+
+      if (th === 'ペット') {
+        $row.find('td li').each((_, li) => {
+          const condition = $(li).text().trim()
+          if (condition) {
+            petConditions.push(condition)
+          }
+        })
+      }
+
+      if (th === '備考') {
+        notes = $row.find('td').text().trim()
+      }
+    })
+
+    if (petConditions.length === 0) {
+      return null
+    }
+
+    return parsePetConditions(petConditions, rent, notes)
   }
 
   /**
