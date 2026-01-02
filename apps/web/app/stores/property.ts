@@ -8,6 +8,7 @@ export interface PropertySearchParams {
   city?: string
   rentMin?: number
   rentMax?: number
+  floorPlan?: string
   page?: number
   perPage?: number
 }
@@ -70,6 +71,9 @@ export const usePropertyStore = defineStore('property', {
         }
         if (params.rentMax) {
           query = query.lte('rent', params.rentMax)
+        }
+        if (params.floorPlan) {
+          query = query.eq('floor_plan', params.floorPlan)
         }
 
         const { data, error, count } = await query

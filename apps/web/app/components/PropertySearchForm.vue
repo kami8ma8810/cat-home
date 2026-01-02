@@ -1,15 +1,36 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { usePropertyStore } from '~/stores/property'
 
 const store = usePropertyStore()
 
+// 賃料の定数
+const RENT_MIN = 0
+const RENT_MAX = 500000
+const RENT_STEP = 5000
+
 // 検索条件
 const prefecture = ref('')
 const city = ref('')
-const rentMin = ref<string>('')
-const rentMax = ref<string>('')
+const rentRange = ref<[number, number]>([RENT_MIN, RENT_MAX])
 const floorPlan = ref('')
+
+// 賃料の個別値（computed getter/setter で双方向バインド）
+const rentMinValue = computed({
+  get: () => rentRange.value[0],
+  set: (val: number | null) => {
+    const newVal = val ?? RENT_MIN
+    rentRange.value = [Math.min(newVal, rentRange.value[1]), rentRange.value[1]]
+  }
+})
+
+const rentMaxValue = computed({
+  get: () => rentRange.value[1],
+  set: (val: number | null) => {
+    const newVal = val ?? RENT_MAX
+    rentRange.value = [rentRange.value[0], Math.max(newVal, rentRange.value[0])]
+  }
+})
 
 // 都道府県リスト
 const prefectureOptions = [
@@ -52,11 +73,12 @@ const handleSearch = async () => {
   if (city.value) {
     params.city = city.value
   }
-  if (rentMin.value) {
-    params.rentMin = parseInt(rentMin.value, 10)
+  // 初期値と異なる場合のみパラメータに含める
+  if (rentRange.value[0] > RENT_MIN) {
+    params.rentMin = rentRange.value[0]
   }
-  if (rentMax.value) {
-    params.rentMax = parseInt(rentMax.value, 10)
+  if (rentRange.value[1] < RENT_MAX) {
+    params.rentMax = rentRange.value[1]
   }
   if (floorPlan.value) {
     params.floorPlan = floorPlan.value
@@ -71,48 +93,84 @@ const handleSearch = async () => {
 const handleReset = () => {
   prefecture.value = ''
   city.value = ''
-  rentMin.value = ''
-  rentMax.value = ''
+  rentRange.value = [RENT_MIN, RENT_MAX]
   floorPlan.value = ''
 }
+
+// セレクト変更時に自動で検索を実行
+watch([prefecture, floorPlan], () => {
+  handleSearch()
+})
 </script>
 
 <template>
   <UCard class="property-search-form">
     <form role="search" aria-label="物件検索フォーム" @submit.prevent="handleSearch">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- 都道府県 -->
         <UFormField label="都道府県">
           <USelect
             v-model="prefecture"
-            :options="prefectureOptions"
+            :items="prefectureOptions"
             placeholder="選択してください"
           />
         </UFormField>
 
-        <!-- 賃料下限 -->
-        <UFormField label="賃料（下限）">
-          <UInput
-            v-model="rentMin"
-            type="number"
-            placeholder="例: 50000"
-          />
-        </UFormField>
+        <!-- 賃料（スライダー + 数値入力のハイブリッド） -->
+        <UFormField label="賃料">
+          <!-- 数値入力フィールド -->
+          <div class="flex flex-col sm:flex-row gap-2 sm:items-center mb-3">
+            <UInputNumber
+              v-model="rentMinValue"
+              :min="RENT_MIN"
+              :max="rentMaxValue"
+              :step="RENT_STEP"
+              placeholder="下限"
+              aria-label="賃料下限"
+              class="flex-1"
+            />
+            <span class="text-center text-muted">〜</span>
+            <UInputNumber
+              v-model="rentMaxValue"
+              :min="rentMinValue"
+              :max="RENT_MAX"
+              :step="RENT_STEP"
+              placeholder="上限"
+              aria-label="賃料上限"
+              class="flex-1"
+            />
+          </div>
 
-        <!-- 賃料上限 -->
-        <UFormField label="賃料（上限）">
-          <UInput
-            v-model="rentMax"
-            type="number"
-            placeholder="例: 100000"
+          <!-- 範囲スライダー -->
+          <USlider
+            v-model="rentRange"
+            :min="RENT_MIN"
+            :max="RENT_MAX"
+            :step="RENT_STEP"
+            aria-label="賃料範囲スライダー"
           />
+
+          <!-- 目盛り -->
+          <div class="flex justify-between text-xs text-muted mt-1">
+            <span>0</span>
+            <span>5</span>
+            <span>10</span>
+            <span>15</span>
+            <span>20</span>
+            <span>25</span>
+            <span>30</span>
+            <span>35</span>
+            <span>40</span>
+            <span>45</span>
+            <span>50</span>
+          </div>
         </UFormField>
 
         <!-- 間取り -->
         <UFormField label="間取り">
           <USelect
             v-model="floorPlan"
-            :options="floorPlanOptions"
+            :items="floorPlanOptions"
             placeholder="選択してください"
           />
         </UFormField>

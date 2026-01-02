@@ -34,17 +34,45 @@ const stubs = {
       })
     },
   }),
-  USelect: defineComponent({
-    props: ['modelValue', 'options', 'placeholder'],
+  UInputNumber: defineComponent({
+    props: ['modelValue', 'min', 'max', 'step', 'placeholder'],
     emits: ['update:modelValue'],
     setup(props, { emit }) {
+      return () => h('input', {
+        class: 'u-input-number',
+        type: 'number',
+        value: props.modelValue,
+        min: props.min,
+        max: props.max,
+        step: props.step,
+        placeholder: props.placeholder,
+        onInput: (e: Event) => {
+          const value = (e.target as HTMLInputElement).value
+          emit('update:modelValue', value ? Number(value) : null)
+        },
+      })
+    },
+  }),
+  USlider: defineComponent({
+    props: ['modelValue', 'min', 'max', 'step'],
+    emits: ['update:modelValue'],
+    setup(props) {
+      return () => h('div', { class: 'u-slider' }, `${props.min} - ${props.max}`)
+    },
+  }),
+  USelect: defineComponent({
+    props: ['modelValue', 'items', 'options', 'placeholder'],
+    emits: ['update:modelValue'],
+    setup(props, { emit }) {
+      // Nuxt UI v4では `items` を使う
+      const itemList = props.items || props.options || []
       return () => h('select', {
         class: 'u-select',
         value: props.modelValue,
         onChange: (e: Event) => emit('update:modelValue', (e.target as HTMLSelectElement).value),
       }, [
         h('option', { value: '' }, props.placeholder || '選択してください'),
-        ...(props.options || []).map((opt: { label: string, value: string }) =>
+        ...itemList.map((opt: { label: string, value: string }) =>
           h('option', { value: opt.value }, opt.label)
         ),
       ])
@@ -134,13 +162,13 @@ describe('PropertySearchForm', () => {
   it('賃料範囲を設定して検索するとパラメータに含まれる', async () => {
     const wrapper = mountForm()
 
-    // 賃料下限を入力
-    const rentMinInput = wrapper.findAll('.u-input').at(0)
+    // 賃料下限を入力（UInputNumberを使用）
+    const rentMinInput = wrapper.findAll('.u-input-number').at(0)
     expect(rentMinInput).toBeDefined()
     await rentMinInput!.setValue('50000')
 
-    // 賃料上限を入力
-    const rentMaxInput = wrapper.findAll('.u-input').at(1)
+    // 賃料上限を入力（UInputNumberを使用）
+    const rentMaxInput = wrapper.findAll('.u-input-number').at(1)
     expect(rentMaxInput).toBeDefined()
     await rentMaxInput!.setValue('100000')
 
@@ -148,6 +176,7 @@ describe('PropertySearchForm', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
+    // 初期値（0, 500000）と異なる値が設定された場合のみパラメータに含まれる
     expect(mockFetchProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         rentMin: 50000,
