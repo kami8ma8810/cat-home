@@ -1,4 +1,4 @@
-import type { BuildingType, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
+import type { BuildingType, Direction, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
 import type { ScraperConfig, ScrapeResult } from '../types'
 import * as cheerio from 'cheerio'
 import { BaseScraper } from './base'
@@ -31,6 +31,7 @@ export interface ScrapedDetailProperty {
   yearBuilt: number | null
   buildingType: BuildingType | null
   floors: number | null
+  direction: Direction | null
   nearestStations: NearestStation[]
   features: string[]
   images: string[]
@@ -121,6 +122,7 @@ export class ChintaiScraper extends BaseScraper {
         features: detail.features,
         nearestStations: detail.nearestStations,
         images: detail.images,
+        direction: detail.direction,
         sourceUrl: url,
       }
 
@@ -360,6 +362,10 @@ export class ChintaiScraper extends BaseScraper {
     const structureText = this.extractTableValue($, '構造')
     const floors = this.parseFloors(structureText)
 
+    // 向き
+    const directionText = this.extractTableValue($, '向き')
+    const direction = this.parseDirection(directionText)
+
     // 最寄り駅
     const nearestStations = this.parseNearestStations($)
 
@@ -396,6 +402,7 @@ export class ChintaiScraper extends BaseScraper {
       yearBuilt,
       buildingType,
       floors,
+      direction,
       nearestStations,
       features,
       images,
@@ -463,6 +470,27 @@ export class ChintaiScraper extends BaseScraper {
   private parseFloors(text: string): number | null {
     const match = text.match(/(\d+)階建/)
     return match ? parseInt(match[1], 10) : null
+  }
+
+
+  /** 日本語の向きを英語に変換 */
+  private parseDirection(text: string): Direction | null {
+    const directionMap: Record<string, Direction> = {
+      '北': 'north',
+      '北東': 'northeast',
+      '東': 'east',
+      '南東': 'southeast',
+      '南': 'south',
+      '南西': 'southwest',
+      '西': 'west',
+      '北西': 'northwest',
+    }
+
+    for (const [jp, en] of Object.entries(directionMap)) {
+      if (text.includes(jp)) return en
+    }
+
+    return null
   }
 
   /**

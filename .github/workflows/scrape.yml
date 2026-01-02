@@ -10,7 +10,7 @@ on:
 jobs:
   scrape-suumo:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -32,7 +32,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: pnpm --filter @cat-home/scraper scrape:suumo
+        run: pnpm --filter @cat-home/scraper scrape:suumo --with-details
 
       - name: Notify on failure
         if: failure()
@@ -40,7 +40,7 @@ jobs:
 
   scrape-door:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -62,7 +62,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: pnpm --filter @cat-home/scraper scrape:door
+        run: pnpm --filter @cat-home/scraper scrape:door --with-details
 
       - name: Notify on failure
         if: failure()
@@ -70,7 +70,7 @@ jobs:
 
   scrape-homes:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -92,7 +92,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: pnpm --filter @cat-home/scraper scrape:homes
+        run: pnpm --filter @cat-home/scraper scrape:homes --with-details
 
       - name: Notify on failure
         if: failure()
@@ -100,7 +100,7 @@ jobs:
 
   scrape-chintai:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -122,7 +122,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: pnpm --filter @cat-home/scraper scrape:chintai
+        run: pnpm --filter @cat-home/scraper scrape:chintai --with-details
 
       - name: Notify on failure
         if: failure()
@@ -130,7 +130,7 @@ jobs:
 
   scrape-nifty:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -152,7 +152,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: pnpm --filter @cat-home/scraper scrape:nifty
+        run: pnpm --filter @cat-home/scraper scrape:nifty --with-details
 
       - name: Notify on failure
         if: failure()

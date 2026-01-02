@@ -32,6 +32,8 @@ export interface Property {
   floors: number | null
   /** 築年 */
   yearBuilt: number | null
+  /** 向き */
+  direction: Direction | null
   /** ペット条件詳細 */
   petConditions: PetConditions | null
   /** 設備・特徴 */
@@ -59,6 +61,9 @@ export type PropertySource = 'suumo' | 'homes' | 'athome' | 'door' | 'chintai' |
 
 /** 建物種別 */
 export type BuildingType = 'mansion' | 'apartment' | 'house' | 'terraced' | 'other'
+
+/** 向き */
+export type Direction = 'north' | 'northeast' | 'east' | 'southeast' | 'south' | 'southwest' | 'west' | 'northwest'
 
 /** ペット条件 */
 export interface PetConditions {

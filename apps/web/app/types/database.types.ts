@@ -21,6 +21,7 @@ export interface Database {
           building_type: string | null
           floor: number | null
           year_built: number | null
+          direction: string | null
           pet_conditions: PetConditionsJson
           features: string[]
           nearest_stations: NearestStationJson[]
@@ -49,6 +50,7 @@ export interface Database {
           building_type?: string | null
           floor?: number | null
           year_built?: number | null
+          direction?: string | null
           pet_conditions?: PetConditionsJson
           features?: string[]
           nearest_stations?: NearestStationJson[]
@@ -77,6 +79,7 @@ export interface Database {
           building_type?: string | null
           floor?: number | null
           year_built?: number | null
+          direction?: string | null
           pet_conditions?: PetConditionsJson
           features?: string[]
           nearest_stations?: NearestStationJson[]

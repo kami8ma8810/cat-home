@@ -70,6 +70,40 @@ async function main() {
 
     console.log(`✅ Found ${result.properties.length} properties (${result.duration}ms)`)
 
+    // --with-details: 詳細ページから追加情報を取得
+    if (withDetails) {
+      console.log(`📖 Fetching detail pages for ${result.properties.length} properties...`)
+      for (let i = 0; i < result.properties.length; i++) {
+        const prop = result.properties[i]
+        if (!prop.sourceUrl) {
+          console.log(`  ⚠️ [${i + 1}/${result.properties.length}] ${prop.name}: No source URL`)
+          continue
+        }
+
+        console.log(`  📄 [${i + 1}/${result.properties.length}] ${prop.name}`)
+
+        const detailResult = await scraper.scrapeDetail(prop.sourceUrl)
+        const detailProp = detailResult.properties[0]
+        if (detailResult.success && detailProp) {
+          // Merge detail info into the property
+          Object.assign(prop, {
+            deposit: detailProp.deposit,
+            keyMoney: detailProp.keyMoney,
+            yearBuilt: detailProp.yearBuilt,
+            buildingType: detailProp.buildingType,
+            floors: detailProp.floors,
+            direction: detailProp.direction,
+            nearestStations: detailProp.nearestStations,
+            features: detailProp.features,
+            images: detailProp.images,
+            petConditions: detailProp.petConditions,
+          })
+        } else {
+          console.log(`    ⚠️ Detail fetch failed: ${detailResult.error}`)
+        }
+      }
+    }
+
     // external_id を収集
     for (const prop of result.properties) {
       if (prop.externalId) {
@@ -88,6 +122,36 @@ async function main() {
         console.log(`    間取り: ${prop.floorPlan}`)
         console.log(`    面積: ${prop.area}m²`)
         console.log(`    ID: ${prop.externalId}`)
+        // --with-details の追加情報
+        if (withDetails) {
+          console.log(`    敷金: ${prop.deposit?.toLocaleString() ?? '-'}円`)
+          console.log(`    礼金: ${prop.keyMoney?.toLocaleString() ?? '-'}円`)
+          console.log(`    築年: ${prop.yearBuilt ?? '-'}年`)
+          console.log(`    建物種別: ${prop.buildingType ?? '-'}`)
+          console.log(`    階数: ${prop.floors ?? '-'}階建`)
+          if (prop.nearestStations?.length) {
+            console.log(`    最寄駅: ${prop.nearestStations.map((s) => `${s.station}(${s.walkMinutes}分)`).join(', ')}`)
+          }
+          if (prop.features?.length) {
+            console.log(`    設備: ${prop.features.slice(0, 5).join(', ')}${prop.features.length > 5 ? '...' : ''}`)
+          }
+          if (prop.petConditions) {
+            const pet = prop.petConditions
+            const petInfo: string[] = []
+            if (pet.catAllowed) petInfo.push(`猫可${pet.catLimit ? `(${pet.catLimit}匹まで)` : ''}`)
+            if (pet.dogAllowed) petInfo.push(`犬可${pet.smallDogOnly ? '(小型犬のみ)' : ''}`)
+            console.log(`    ペット条件: ${petInfo.join(', ') || '詳細不明'}`)
+          }
+          if (prop.images?.length) {
+            console.log(`    画像: ${prop.images.length}枚`)
+            prop.images.slice(0, 3).forEach((url, i) => {
+              console.log(`      [${i + 1}] ${url}`)
+            })
+            if (prop.images.length > 3) {
+              console.log(`      ... 他${prop.images.length - 3}枚`)
+            }
+          }
+        }
         console.log('')
       }
     } else if (db) {

@@ -1,2 +1,13 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* クリック可能な要素に cursor: pointer を適用 */
+@layer base {
+  button,
+  [role="button"],
+  a,
+  summary,
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+}

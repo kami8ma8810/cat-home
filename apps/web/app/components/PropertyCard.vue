@@ -53,9 +53,14 @@ const shortAddress = computed(() => {
 </script>
 
 <template>
-  <UCard class="property-card">
-    <!-- 画像 -->
-    <template #header>
+  <NuxtLink
+    :to="`/properties/${property.id}`"
+    class="block"
+    :aria-label="`${property.name}の詳細を見る`"
+  >
+    <UCard class="property-card">
+      <!-- 画像 -->
+      <template #header>
       <div class="aspect-video bg-gray-100 relative overflow-hidden">
         <img
           v-if="property.images.length > 0"
@@ -113,31 +118,16 @@ const shortAddress = computed(() => {
       </div>
     </div>
 
-    <!-- フッター -->
-    <template #footer>
-      <NuxtLink
-        :to="`/properties/${property.id}`"
-        class="block"
-        :aria-label="`${property.name}の詳細を見る`"
-      >
-        <UButton
-          block
-          variant="outline"
-        >
-          詳細を見る
-        </UButton>
-      </NuxtLink>
-    </template>
-  </UCard>
+    </UCard>
+  </NuxtLink>
 </template>
 
 <style scoped>
 .property-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.2s;
 }
 
 .property-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

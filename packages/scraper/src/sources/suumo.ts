@@ -1,4 +1,4 @@
-import type { BuildingType, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
+import type { BuildingType, Direction, NearestStation, PetConditions, Property, PropertySource } from '@cat-home/shared'
 import type { ScraperConfig, ScrapeResult } from '../types'
 import * as cheerio from 'cheerio'
 import { BaseScraper } from './base'
@@ -29,6 +29,7 @@ export interface ScrapedDetailProperty {
   yearBuilt: number | null
   buildingType: BuildingType | null
   floors: number | null
+  direction: Direction | null
   nearestStations: NearestStation[]
   features: string[]
   images: string[]
@@ -117,6 +118,7 @@ export class SuumoScraper extends BaseScraper {
         buildingType: detail.buildingType,
         floors: detail.floors,
         yearBuilt: detail.yearBuilt,
+        direction: detail.direction,
         petConditions: detail.petConditions,
         features: detail.features,
         nearestStations: detail.nearestStations,
@@ -298,6 +300,10 @@ export class SuumoScraper extends BaseScraper {
     const structureText = this.extractTableValue($, '建物構造')
     const floors = this.parseFloors(structureText)
 
+    // 向き
+    const directionText = this.extractTableValue($, '向き')
+    const direction = this.parseDirection(directionText)
+
     // 最寄り駅
     const transportText = this.extractTableValue($, '交通')
     const nearestStations = this.parseNearestStations(transportText)
@@ -311,12 +317,12 @@ export class SuumoScraper extends BaseScraper {
       }
     })
 
-    // 画像URL
+    // 画像URL（遅延読み込み対応: data-src, data-original, src の順で取得）
     const images: string[] = []
-    $('.property_view_gallery-list a').each((_, el) => {
-      const href = $(el).attr('href')
-      if (href) {
-        images.push(href)
+    $('.property_view_object-img').each((_, el) => {
+      const src = $(el).attr('data-src') || $(el).attr('data-original') || $(el).attr('src')
+      if (src && src.startsWith('http')) {
+        images.push(src)
       }
     })
 
@@ -335,6 +341,7 @@ export class SuumoScraper extends BaseScraper {
       yearBuilt,
       buildingType,
       floors,
+      direction,
       nearestStations,
       features,
       images,
@@ -386,6 +393,27 @@ export class SuumoScraper extends BaseScraper {
   private parseFloors(text: string): number | null {
     const match = text.match(/(\d+)階建/)
     return match ? parseInt(match[1], 10) : null
+  }
+
+  /**
+   * 向きテキストを Direction に変換
+   * 例: "南" → 'south', "南東" → 'southeast'
+   */
+  private parseDirection(text: string): Direction | null {
+    const directionMap: Record<string, Direction> = {
+      '北': 'north',
+      '北東': 'northeast',
+      '東': 'east',
+      '南東': 'southeast',
+      '南': 'south',
+      '南西': 'southwest',
+      '西': 'west',
+      '北西': 'northwest',
+    }
+    for (const [jp, en] of Object.entries(directionMap)) {
+      if (text.includes(jp)) return en
+    }
+    return null
   }
 
   /**

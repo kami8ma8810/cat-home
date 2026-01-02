@@ -7,6 +7,7 @@ const route = useRoute()
 const store = usePropertyStore()
 
 const property = ref<PropertyRow | null>(null)
+const selectedImageIndex = ref(0)
 
 // 動的タイトル
 const pageTitle = computed(() =>
@@ -97,6 +98,29 @@ const floorText = computed(() => {
   return `${property.value.floor}階`
 })
 
+/** 建物種別 */
+const buildingTypeText = computed(() => {
+  return property.value?.building_type ?? null
+})
+
+/** 向き（日本語表示） */
+const directionText = computed(() => {
+  const direction = property.value?.direction
+  if (!direction) return null
+
+  const directionMap: Record<string, string> = {
+    'north': '北',
+    'northeast': '北東',
+    'east': '東',
+    'southeast': '南東',
+    'south': '南',
+    'southwest': '南西',
+    'west': '西',
+    'northwest': '北西',
+  }
+  return directionMap[direction] ?? null
+})
+
 /** 猫飼育可かどうか */
 const isCatAllowed = computed(() => {
   return property.value?.pet_conditions?.catAllowed ?? false
@@ -167,12 +191,12 @@ const stationInfo = computed(() => {
         <!-- 左カラム: 画像ギャラリー -->
         <div>
           <!-- メイン画像 -->
-          <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4">
+          <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center">
             <img
               v-if="property.images.length > 0"
-              :src="property.images[0]"
+              :src="property.images[selectedImageIndex]"
               :alt="property.name"
-              class="w-full h-full object-cover"
+              class="max-w-full max-h-full object-contain"
             >
             <div v-else class="flex items-center justify-center h-full text-gray-400">
               No Image
@@ -180,17 +204,20 @@ const stationInfo = computed(() => {
           </div>
           <!-- サムネイル -->
           <div v-if="property.images.length > 1" class="grid grid-cols-4 gap-2">
-            <div
-              v-for="(image, idx) in property.images.slice(0, 4)"
+            <button
+              v-for="(image, idx) in property.images.slice(0, 8)"
               :key="idx"
-              class="aspect-video bg-gray-100 rounded overflow-hidden"
+              type="button"
+              class="aspect-video bg-gray-100 rounded overflow-hidden cursor-pointer ring-offset-2 transition-all flex items-center justify-center"
+              :class="selectedImageIndex === idx ? 'ring-2 ring-primary' : 'hover:opacity-80'"
+              @click="selectedImageIndex = idx"
             >
               <img
                 :src="image"
                 :alt="`${property.name} - ${idx + 1}`"
-                class="w-full h-full object-cover"
+                class="max-w-full max-h-full object-contain"
               >
-            </div>
+            </button>
           </div>
         </div>
 
@@ -234,9 +261,9 @@ const stationInfo = computed(() => {
             </UCard>
           </div>
 
-          <!-- 間取り・面積・築年・階数 -->
+          <!-- 間取り・面積・築年・階数・建物種別 -->
           <UCard>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
               <div>
                 <div class="text-sm text-gray-500">間取り</div>
                 <div class="font-bold">{{ property.floor_plan }}</div>
@@ -252,6 +279,14 @@ const stationInfo = computed(() => {
               <div v-if="floorText">
                 <div class="text-sm text-gray-500">階数</div>
                 <div class="font-bold">{{ floorText }}</div>
+              </div>
+              <div v-if="buildingTypeText">
+                <div class="text-sm text-gray-500">建物種別</div>
+                <div class="font-bold">{{ buildingTypeText }}</div>
+              </div>
+              <div v-if="directionText">
+                <div class="text-sm text-gray-500">向き</div>
+                <div class="font-bold">{{ directionText }}</div>
               </div>
             </div>
           </UCard>
